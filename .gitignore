@@ -45,3 +45,10 @@ archive/*
 web/static/*
 !web/static/favicon.ico
 !web/static/robots.txt
+# Local credentials and generated assets
+config.local
+*.secret
+seonaut
+
+__pycache__/
+*.pyc

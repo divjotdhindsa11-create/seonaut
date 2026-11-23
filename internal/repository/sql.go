@@ -16,11 +16,11 @@ const (
 
 	// maxOpenConns is the maximum number of open connections to the database.
 	// Use 0 for unlimited connections.
-	maxOpenConns = 25
+	maxOpenConns = 6
 
 	// maxIddleConns is the maximum number of connections in the idle connection pool.
 	// Use 0 for no idle connections retained.
-	maxIddleConns = 25
+	maxIddleConns = 2
 
 	// connMaxLifeInMinutes is the maximum amount of time a connection may be reused.
 	// Use 0 to not close connections due to it's age.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"net/http"
+	"os"
 
 	"github.com/stjudewashere/seonaut/internal/models"
 
@@ -42,6 +43,8 @@ func NewCookieSession(r CookieSessionRepository) *CookieSession {
 		Path:     "/",
 		MaxAge:   60 * 15,
 		HttpOnly: true,
+		Secure:   os.Getenv("SEONAUT_SECURE_COOKIES") == "true",
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	gob.Register(models.User{})

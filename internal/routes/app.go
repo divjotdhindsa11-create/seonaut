@@ -59,6 +59,7 @@ func NewServer(container *services.Container) {
 
 	// Project routes
 	projectHandler := projectHandler{container}
+	http.HandleFunc("GET /overview", container.CookieSession.Auth(projectHandler.overviewHandler))
 	http.HandleFunc("GET /", container.CookieSession.Auth(projectHandler.indexHandler))
 	http.HandleFunc("GET /project/add", container.CookieSession.Auth(projectHandler.addGetHandler))
 	http.HandleFunc("POST /project/add", container.CookieSession.Auth(projectHandler.addPostHandler))

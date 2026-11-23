@@ -171,8 +171,8 @@ func (s *CrawlerService) addCrawler(u *url.URL, p *models.Project, b *models.Bas
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if _, ok := s.crawlers[p.Id]; ok {
-		return nil, errors.New("project is already being crawled")
+	if len(s.crawlers) > 0 {
+		return nil, errors.New("another crawl is running; please wait until it finishes")
 	}
 
 	options := &crawler.Options{

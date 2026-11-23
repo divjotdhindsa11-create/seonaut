@@ -3,9 +3,14 @@ package routes
 import (
 	"log"
 	"net/http"
+	"os"
+	"strings"
+	"sync"
 
 	"github.com/stjudewashere/seonaut/internal/services"
 )
+
+var signupLock sync.Mutex
 
 type userHandler struct {
 	*services.Container
@@ -14,6 +19,10 @@ type userHandler struct {
 // signupGetHandler handles the GET signup request and displays the sign up form.
 // It allows users to sign up by providing their email and password.
 func (h *userHandler) signupGetHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := os.Stat(os.Getenv("SEONAUT_SIGNUP_CLOSED_FILE")); err == nil || os.Getenv("SEONAUT_SIGNUP_OPEN") != "true" {
+		http.Error(w, "Registration is closed. Please sign in.", http.StatusForbidden)
+		return
+	}
 	pageView := &PageView{
 		Lang:      h.Container.Config.UIConfig.Language,
 		Theme:     h.Container.Config.UIConfig.Theme,
@@ -33,6 +42,12 @@ func (h *userHandler) signupGetHandler(w http.ResponseWriter, r *http.Request) {
 // In case of error the signup template is rendered with the pre-populated form using the
 // data's email field.
 func (h *userHandler) signupPostHandler(w http.ResponseWriter, r *http.Request) {
+	signupLock.Lock()
+	defer signupLock.Unlock()
+	if _, err := os.Stat(os.Getenv("SEONAUT_SIGNUP_CLOSED_FILE")); err == nil || os.Getenv("SEONAUT_SIGNUP_OPEN") != "true" {
+		http.Error(w, "Registration is closed. Please sign in.", http.StatusForbidden)
+		return
+	}
 	err := r.ParseForm()
 	if err != nil {
 		http.Redirect(w, r, "/signup", http.StatusSeeOther)
@@ -40,6 +55,10 @@ func (h *userHandler) signupPostHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	email := r.FormValue("email")
+	if allowed := os.Getenv("SEONAUT_OWNER_EMAIL"); allowed != "" && !strings.EqualFold(email, allowed) {
+		http.Error(w, "Registration is restricted to the owner.", http.StatusForbidden)
+		return
+	}
 	password := r.FormValue("password")
 	lang := h.Container.Config.UIConfig.Language
 	theme := h.Container.Config.UIConfig.Theme
@@ -74,6 +93,11 @@ func (h *userHandler) signupPostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if file := os.Getenv("SEONAUT_SIGNUP_CLOSED_FILE"); file != "" {
+		if err := os.WriteFile(file, []byte("closed\n"), 0600); err != nil {
+			log.Printf("Unable to persist registration closure: %v", err)
+		}
+	}
 	h.CookieSession.SetSession(u, w, r)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
