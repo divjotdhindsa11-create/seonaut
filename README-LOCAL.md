@@ -48,7 +48,7 @@ Do not run `brew services start mysql` as a second database instance.
 Search Console: Fraser Fix, Pick Card, Invites Cafe and Enanto return real data. Mobillify is missing from the connected account; add and verify sc-domain:mobillify.com.
 GA4 properties: Fraser Fix 562959699, Pick Card 408079808, Invites Cafe 428111393, Enanto 547385340, Mobillify 565575884. All return successful reports. Mobillify currently has zero report rows, which is displayed as no data, not an error.
 Google data is fetched through the owner's connected account and saved in private/connected-metrics.json. No OAuth tokens are copied into the repository. Daily refresh is handled by the bot's scheduled automation, not an exposed local API. Independent service-account/OAuth refresh without OpenMausBot is not implemented.
-Google autocomplete: one seed per site per refresh, cached in private/overview.json. No API key required. PageSpeed keyless test returned HTTP 429; waiting for a free PageSpeed API key. Bing is waiting for a free Webmaster API key and verified sites. Google Trends public endpoint also returned HTTP 429, so Trends is omitted rather than treated as a reliable data source. No paid feeds are used.
+Google autocomplete: one seed per site per refresh, cached in private/overview.json. No API key required. PageSpeed now has keyless mobile and desktop clients for all five homepages, with daily caching, calls spaced three seconds apart, and an immediate stop after HTTP 429. The real keyless test still returns 429, so no scores are available yet. Bing is implemented and skips cleanly until its private key exists. Google Trends public endpoint also returned HTTP 429, so Trends is omitted rather than treated as a reliable data source. No paid feeds are used.
 
 Snapshot format: connected-metrics.json has `results`, `start` and `end`. The results contain a `response.data` object. Order: three GSC reports (totals, top 50 queries, top 50 pages) for Fraser Fix, Pick Card, Invites Cafe and Enanto, followed by five GA4 batch reports in that same site order plus Mobillify. Each GA4 batch contains totals (sessions,totalUsers), top 20 pagePath/screenPageViews, top 20 sessionSourceMedium/sessions. Top rows are intentionally limited and labelled, not claimed to be all queries.
 
@@ -74,3 +74,17 @@ If upstream CSS changes, compile with pinned esbuild 0.25.12 using `make front` 
 Logs: logs/app.log, logs/mysql.log, logs/mysql-launch.log. Database: /opt/homebrew/var/mysql. App content archives stay under source/archive. Back up the database using mysqldump with the private credentials file, never placing passwords in command arguments.
 
 Before running the setup CLI, stop the app LaunchAgent. SEOnaut startup deletes unfinished crawl records, so the setup crawler and app must never run at the same time. Restart the app only after the setup crawl exits successfully.
+
+## Public source configuration
+
+Optional private/sources.json holds file paths, never committed key values:
+```json
+{
+  "pagespeed_api_key_file": "/Users/divjotai/Services/seonaut/private/pagespeed-key",
+  "bing_api_key_file": "/Users/divjotai/Services/seonaut/private/bing-key",
+  "bing_sites": {}
+}
+```
+Omit absent keys. Apply mode 600 to config and key files. Bing discovers exact site URLs through GetSites, then fetches GetQueryStats, GetLinkCounts (first page), and GetCrawlIssues. An explicit domain-to-verified-URL mapping can be supplied in bing_sites. Results display within the app. Read failures skip the source, and credential-bearing URLs are never logged. Private/source-cache.json stores daily cached responses. Delete that cache after adding a new key to retry immediately. Tests: `python3 -m unittest discover -s integration -p 'test_*.py'`. Network success with a real Bing key remains unverified.
+
+Google Trends is a small external link because its public endpoint was rate limited. Mobillify does not appear at all in the connected harchaind Search Console property list, including as an unverified property. A property may still exist under another account, which this check cannot establish.
