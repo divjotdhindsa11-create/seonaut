@@ -11,12 +11,12 @@
 	
 				<div class="form-container">
 					<div class="content">
-						<h1>{{ trans "SIGN_IN" }}</h1>
+						<div class="eyebrow">YOUR SEO WORKSPACE</div><h1>{{ trans "SIGN_IN" }}</h1><p class="auth-subtitle">A clearer view of your search performance.</p>
 						<form method="POST">
 							<label for="email">{{ trans "EMAIL_LABEL" }}</label>
-							<input type="email" name="email" value="{{ .Data.Email }}" required autofocus>
+							<input id="email" autocomplete="username" type="email" name="email" value="{{ .Data.Email }}" required autofocus>
 							<label for="password">{{ trans "PASSWORD_LABEL" }}</label>
-							<input type="password" name="password" required>
+							<input id="password" autocomplete="current-password" type="password" name="password" required>
 							<input type="submit" value="{{ trans "SIGN_IN" }}">
 						</form>
 
@@ -27,7 +27,7 @@
 
 					<div class="box-footer">
 						<div class="content">
-							{{ trans "NEW_USER" }} <a href="/signup">{{ trans "NEW_USER_SIGNUP" }}</a>
+							<span class="status-dot"></span> Private workspace · Access by invitation
 						</div>
 					</div>
 				</div>
